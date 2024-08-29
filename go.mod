@@ -1,4 +1,4 @@
-module gosharp
+module github.com/lemo-ai/gosharp
 
 go 1.22.6
 
