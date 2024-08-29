@@ -2,11 +2,11 @@ package convert
 
 import (
 	"fmt"
-	"gosharp/empty"
-	"gosharp/gerror"
-	"gosharp/json"
-	"gosharp/stringutil"
-	"gosharp/structutil"
+	"github.com/lemo-ai/gosharp/empty"
+	"github.com/lemo-ai/gosharp/gerror"
+	"github.com/lemo-ai/gosharp/json"
+	"github.com/lemo-ai/gosharp/stringutil"
+	"github.com/lemo-ai/gosharp/structutil"
 	"reflect"
 	"strings"
 )

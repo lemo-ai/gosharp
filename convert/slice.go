@@ -1,6 +1,6 @@
 package convert
 
-import "gosharp/json"
+import "github.com/lemo-ai/gosharp/json"
 
 // SliceMap is alias of Maps.
 func SliceMap(i interface{}) []map[string]interface{} {

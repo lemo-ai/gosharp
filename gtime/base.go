@@ -3,8 +3,8 @@ package gtime
 import (
 	"errors"
 	"fmt"
-	"gosharp/judge"
-	"gosharp/regex"
+	"github.com/lemo-ai/gosharp/judge"
+	"github.com/lemo-ai/gosharp/regex"
 	"regexp"
 	"strconv"
 	"strings"

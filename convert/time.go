@@ -1,8 +1,8 @@
 package convert
 
 import (
-	"gosharp/gtime"
-	"gosharp/judge"
+	"github.com/lemo-ai/gosharp/gtime"
+	"github.com/lemo-ai/gosharp/judge"
 	"time"
 )
 

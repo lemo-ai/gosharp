@@ -2,10 +2,10 @@ package convert
 
 import (
 	"errors"
-	"gosharp/empty"
-	"gosharp/gerror"
-	"gosharp/json"
-	"gosharp/judge"
+	"github.com/lemo-ai/gosharp/empty"
+	"github.com/lemo-ai/gosharp/gerror"
+	"github.com/lemo-ai/gosharp/json"
+	"github.com/lemo-ai/gosharp/judge"
 	"reflect"
 	"strings"
 )

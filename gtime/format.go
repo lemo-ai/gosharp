@@ -2,7 +2,7 @@ package gtime
 
 import (
 	"bytes"
-	"gosharp/regex"
+	"github.com/lemo-ai/gosharp/regex"
 	"strconv"
 	"strings"
 )

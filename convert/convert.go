@@ -3,7 +3,7 @@ package convert
 import (
 	"encoding/json"
 	"fmt"
-	"gosharp/encoding/gbinary"
+	"github.com/lemo-ai/gosharp/encoding/gbinary"
 	"reflect"
 	"strconv"
 	"strings"

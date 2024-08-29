@@ -2,8 +2,8 @@ package convert
 
 import (
 	"errors"
-	"gosharp/gerror"
-	"gosharp/json"
+	"github.com/lemo-ai/gosharp/gerror"
+	"github.com/lemo-ai/gosharp/json"
 	"reflect"
 )
 
