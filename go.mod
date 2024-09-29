@@ -1,6 +1,6 @@
 module github.com/lemo-ai/gosharp
 
-go 1.22.6
+go 1.21.7
 
 require (
 	github.com/json-iterator/go v1.1.12
