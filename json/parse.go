@@ -44,16 +44,3 @@ func parseFloatBytes(b []byte) (float64, error) {
 func appendInt(dst []byte, n int64) []byte {
 	return strconv.AppendInt(dst, n, 10)
 }
-
-// estimateArrayLen guesses slice capacity from remaining JSON bytes.
-func estimateArrayLen(d *decoder, min int) int {
-	remain := len(d.data) - d.off
-	est := remain / 3
-	if est < min {
-		return min
-	}
-	if est > 4096 {
-		return 4096
-	}
-	return est
-}

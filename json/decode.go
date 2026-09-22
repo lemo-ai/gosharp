@@ -182,7 +182,7 @@ func decodeString(d *decoder, v reflect.Value) error {
 		v.SetString("")
 		return nil
 	}
-	s, err := d.readString()
+	s, err := d.readStringFast()
 	if err != nil {
 		return err
 	}
@@ -384,7 +384,7 @@ func makeDecodeStruct(sc *structCodec) decodeFn {
 			return nil
 		}
 		for {
-			key, err := d.readString()
+			key, err := d.readStringFast()
 			if err != nil {
 				return err
 			}
