@@ -44,11 +44,8 @@ func Strings(i interface{}) []string {
 		for k, v := range value {
 			array[k] = String(v)
 		}
-	case []uint8:
-		array = make([]string, len(value))
-		for k, v := range value {
-			array[k] = String(v)
-		}
+	case []uint8: // also []byte: treat as one string, not per-byte digits
+		return []string{string(value)}
 	case []uint16:
 		array = make([]string, len(value))
 		for k, v := range value {

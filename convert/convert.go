@@ -184,15 +184,14 @@ func Convert(i interface{}, t string, params ...interface{}) interface{} {
 		}
 		return Time(i)
 	case "*time.Time":
-		var v interface{}
 		if len(params) > 0 {
-			v = Time(i, String(params[0]))
-		} else {
-			if _, ok := i.(*time.Time); ok {
-				return i
-			}
-			v = Time(i)
+			v := Time(i, String(params[0]))
+			return &v
 		}
+		if _, ok := i.(*time.Time); ok {
+			return i
+		}
+		v := Time(i)
 		return &v
 
 	case "Duration", "time.Duration":
@@ -498,7 +497,7 @@ func Int64(i interface{}) int64 {
 				s = s[1:]
 			}
 		}
-		// Hexadecimal
+		// Hexadecimal: 0x / 0X
 		if len(s) > 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X') {
 			if v, e := strconv.ParseInt(s[2:], 16, 64); e == nil {
 				if isMinus {
@@ -507,9 +506,9 @@ func Int64(i interface{}) int64 {
 				return v
 			}
 		}
-		// Octal
-		if len(s) > 1 && s[0] == '0' {
-			if v, e := strconv.ParseInt(s[1:], 8, 64); e == nil {
+		// Explicit octal: 0o / 0O (leading 0 alone is decimal, e.g. "010" -> 10)
+		if len(s) > 2 && s[0] == '0' && (s[1] == 'o' || s[1] == 'O') {
+			if v, e := strconv.ParseInt(s[2:], 8, 64); e == nil {
 				if isMinus {
 					return -v
 				}
@@ -611,15 +610,15 @@ func Uint64(i interface{}) uint64 {
 		return gbinary.DecodeToUint64(value)
 	default:
 		s := String(value)
-		// Hexadecimal
+		// Hexadecimal: 0x / 0X
 		if len(s) > 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X') {
 			if v, e := strconv.ParseUint(s[2:], 16, 64); e == nil {
 				return v
 			}
 		}
-		// Octal
-		if len(s) > 1 && s[0] == '0' {
-			if v, e := strconv.ParseUint(s[1:], 8, 64); e == nil {
+		// Explicit octal: 0o / 0O (leading 0 alone is decimal)
+		if len(s) > 2 && s[0] == '0' && (s[1] == 'o' || s[1] == 'O') {
+			if v, e := strconv.ParseUint(s[2:], 8, 64); e == nil {
 				return v
 			}
 		}

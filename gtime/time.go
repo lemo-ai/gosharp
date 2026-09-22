@@ -24,6 +24,9 @@ func New(param ...interface{}) *Time {
 		case time.Time:
 			return NewFromTime(r)
 		case *time.Time:
+			if r == nil {
+				return &Time{wrapper{time.Time{}}}
+			}
 			return NewFromTime(*r)
 		case Time:
 			return &r
@@ -293,16 +296,25 @@ func (t *Time) Truncate(d time.Duration) *Time {
 // See the documentation on the Time type for the pitfalls of using == with
 // Time values; most code should use Equal instead.
 func (t *Time) Equal(u *Time) bool {
+	if t == nil || u == nil {
+		return t == u
+	}
 	return t.Time.Equal(u.Time)
 }
 
 // Before reports whether the time instant t is before u.
 func (t *Time) Before(u *Time) bool {
+	if t == nil || u == nil {
+		return false
+	}
 	return t.Time.Before(u.Time)
 }
 
 // After reports whether the time instant t is after u.
 func (t *Time) After(u *Time) bool {
+	if t == nil || u == nil {
+		return false
+	}
 	return t.Time.After(u.Time)
 }
 
@@ -311,6 +323,9 @@ func (t *Time) After(u *Time) bool {
 // will be returned.
 // To compute t-d for a duration d, use t.Add(-d).
 func (t *Time) Sub(u *Time) time.Duration {
+	if t == nil || u == nil {
+		return 0
+	}
 	return t.Time.Sub(u.Time)
 }
 
@@ -321,13 +336,20 @@ func (t *Time) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON implements the interface UnmarshalJSON for json.Unmarshal.
 func (t *Time) UnmarshalJSON(b []byte) error {
-	if len(b) == 0 {
+	if t == nil {
+		return nil
+	}
+	if len(b) == 0 || string(b) == "null" {
 		t.Time = time.Time{}
 		return nil
 	}
 	newTime, err := StrToTime(string(bytes.Trim(b, `"`)))
 	if err != nil {
 		return err
+	}
+	if newTime == nil {
+		t.Time = time.Time{}
+		return nil
 	}
 	t.Time = newTime.Time
 	return nil

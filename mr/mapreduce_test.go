@@ -593,7 +593,7 @@ func TestMapReduceWithContext(t *testing.T) {
 		}
 	}, WithContext(ctx))
 	assert.NotNil(t, err)
-	assert.Equal(t, context.DeadlineExceeded, err)
+	assert.Equal(t, context.Canceled, err)
 }
 
 func BenchmarkMapReduce(b *testing.B) {

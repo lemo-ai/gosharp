@@ -147,7 +147,7 @@ func MapReduce(generate GenerateFunc, mapper MapperFunc, reducer ReducerFunc,
 
 func Map(generate GenerateFunc, mapper MapFunc, opts ...Option) chan interface{} {
 	options := buildOptions(opts...)
-	panicChan := &onceChan{channel: make(chan interface{})}
+	panicChan := &onceChan{channel: make(chan interface{}, 1)}
 	source := buildSource(generate, panicChan)
 	collector := make(chan interface{}, options.workers)
 	done := make(chan PlaceholderType)
@@ -160,7 +160,34 @@ func Map(generate GenerateFunc, mapper MapFunc, opts ...Option) chan interface{}
 		doneChan:  done,
 		workers:   options.workers,
 	})
-	return collector
+
+	// Bridge collector to output while watching panicChan, otherwise a mapper
+	// panic would block forever on the unbuffered write and deadlock wg.Wait.
+	output := make(chan interface{})
+	go func() {
+		defer close(output)
+		for {
+			select {
+			case v := <-panicChan.channel:
+				panic(v)
+			case v, ok := <-collector:
+				if !ok {
+					select {
+					case v := <-panicChan.channel:
+						panic(v)
+					default:
+						return
+					}
+				}
+				select {
+				case output <- v:
+				case p := <-panicChan.channel:
+					panic(p)
+				}
+			}
+		}
+	}()
+	return output
 }
 
 // MapReduceChan maps all elements from source, and reduce the output elements with given reducer.
@@ -234,8 +261,8 @@ func mapReduceWithPanicChan(source <-chan interface{}, panicChan *onceChan, mapp
 
 	select {
 	case <-options.ctx.Done():
-		cancel(context.DeadlineExceeded)
-		return nil, context.DeadlineExceeded
+		cancel(options.ctx.Err())
+		return nil, options.ctx.Err()
 	case v := <-panicChan.channel:
 		panic(v)
 	case v, ok := <-output:
@@ -385,13 +412,25 @@ func newGuardedWriter(ctx context.Context, channel chan<- interface{},
 }
 
 func (gw guardedWriter) Write(v interface{}) {
+	// Prefer cancellation paths over send so we never block after cancel,
+	// and avoid the select+default race that can send on a closed channel.
 	select {
 	case <-gw.ctx.Done():
 		return
 	case <-gw.done:
 		return
 	default:
-		gw.channel <- v
+	}
+
+	defer func() {
+		// Channel may be closed concurrently after done; swallow that panic.
+		_ = recover()
+	}()
+
+	select {
+	case <-gw.ctx.Done():
+	case <-gw.done:
+	case gw.channel <- v:
 	}
 }
 

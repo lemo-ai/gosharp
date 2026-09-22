@@ -1,7 +1,6 @@
 package convert
 
 import (
-	"fmt"
 	"github.com/lemo-ai/gosharp/empty"
 	"github.com/lemo-ai/gosharp/gerror"
 	"github.com/lemo-ai/gosharp/json"
@@ -252,18 +251,15 @@ func bindVarToStructAttr(elem reflect.Value, name string, value interface{}, map
 	if !structFieldValue.CanSet() {
 		return nil
 	}
-	defer func() {
-		if e := recover(); e != nil {
-			if err = bindVarToReflectValue(structFieldValue, value, mapping...); err != nil {
-				err = gerror.Wrapf(err, `error binding value to attribute "%s"`, name)
-			}
-		}
-	}()
-	// Directly converting.
 	if empty.IsNil(value) {
 		structFieldValue.Set(reflect.Zero(structFieldValue.Type()))
-	} else {
-		structFieldValue.Set(reflect.ValueOf(Convert(value, structFieldValue.Type().String())))
+		return nil
+	}
+	if assignConverted(structFieldValue, value) {
+		return nil
+	}
+	if err = bindVarToReflectValue(structFieldValue, value, mapping...); err != nil {
+		return gerror.Wrapf(err, `error binding value to attribute "%s"`, name)
 	}
 	return nil
 }
@@ -387,20 +383,27 @@ func bindVarToReflectValue(structFieldValue reflect.Value, value interface{}, ma
 		}
 
 	default:
-		defer func() {
-			if e := recover(); e != nil {
-				err = gerror.New(
-					fmt.Sprintf(`cannot convert value "%+v" to type "%s"`,
-						value,
-						structFieldValue.Type().String(),
-					),
-				)
-			}
-		}()
-		// It here uses reflect converting <value> to type of the attribute and assigns
-		// the result value to the attribute. It might fail and panic if the usual Go
-		// conversion rules do not allow conversion.
-		structFieldValue.Set(reflect.ValueOf(value).Convert(structFieldValue.Type()))
+		src := reflect.ValueOf(value)
+		if !src.IsValid() {
+			return gerror.Newf(
+				`cannot convert value "%+v" to type "%s"`,
+				value,
+				structFieldValue.Type().String(),
+			)
+		}
+		if src.Type().AssignableTo(structFieldValue.Type()) {
+			structFieldValue.Set(src)
+			return nil
+		}
+		if src.CanConvert(structFieldValue.Type()) {
+			structFieldValue.Set(src.Convert(structFieldValue.Type()))
+			return nil
+		}
+		return gerror.Newf(
+			`cannot convert value "%+v" to type "%s"`,
+			value,
+			structFieldValue.Type().String(),
+		)
 	}
 	return nil
 }

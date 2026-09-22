@@ -26,12 +26,10 @@ func EncodeBitsWithUint(bits []Bit, ui uint, l int) []Bit {
 
 // 将bits转换为[]byte，从左至右进行编码，不足1 byte按0往末尾补充
 func EncodeBitsToBytes(bits []Bit) []byte {
-	if len(bits)%8 != 0 {
-		for i := 0; i < len(bits)%8; i++ {
-			bits = append(bits, 0)
-		}
+	if pad := (8 - len(bits)%8) % 8; pad > 0 {
+		bits = append(bits, make([]Bit, pad)...)
 	}
-	b := make([]byte, 0)
+	b := make([]byte, 0, len(bits)/8)
 	for i := 0; i < len(bits); i += 8 {
 		b = append(b, byte(DecodeBitsToUint(bits[i:i+8])))
 	}

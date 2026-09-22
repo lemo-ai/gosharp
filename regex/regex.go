@@ -1,14 +1,12 @@
+// Package regex provides high performance API for regular expression functionality.
 package regex
-
-// Package gregex provides high performance API for regular expression functionality.
 
 import (
 	"regexp"
 )
 
-// Quote 将字符串中包含的特殊字符进行转义(反斜杠)，
-// 然后在字符串两边各加上一个双引号( " )并返回,并不修改原字符串
-// 如：Quote(`[foo]`) 返回 `\[foo\]`。
+// Quote escapes special regex metacharacters in s using regexp.QuoteMeta.
+// Example: Quote(`[foo]`) returns `\[foo\]`.
 func Quote(s string) string {
 	return regexp.QuoteMeta(s)
 }

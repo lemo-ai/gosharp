@@ -115,6 +115,7 @@ func getFieldValuesByTagPriority(pointer interface{}, priority []string, tagMap 
 			if _, ok := tagMap[tagValue]; ok {
 				continue
 			}
+			tagMap[tagValue] = struct{}{}
 			tagField := field
 			tagField.TagValue = tagValue
 			tagFields = append(tagFields, tagField)

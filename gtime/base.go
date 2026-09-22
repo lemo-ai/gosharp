@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"time"
 )
 
@@ -51,6 +52,9 @@ var (
 	timeRegex1, _ = regexp.Compile(TIME_REAGEX_PATTERN1)
 	timeRegex2, _ = regexp.Compile(TIME_REAGEX_PATTERN2)
 
+	// customLocation is set by SetTimeZone; nil means use time.Local.
+	customLocation atomic.Pointer[time.Location]
+
 	// Month words to arabic numerals mapping.
 	monthMap = map[string]int{
 		"jan":       1,
@@ -80,22 +84,32 @@ var (
 	}
 )
 
-// SetTimeZone sets the time zone for current whole process.
-// The parameter <zone> is an area string specifying corresponding time zone,
-// eg: Asia/Shanghai.
+// Location returns the package default location used by parsing helpers.
+// It is the location set by SetTimeZone, or time.Local if unset.
+func Location() *time.Location {
+	if loc := customLocation.Load(); loc != nil {
+		return loc
+	}
+	return time.Local
+}
+
+// SetTimeZone sets the default time zone for this package (not the whole process).
+// It does NOT mutate time.Local. The parameter zone is an IANA area name, eg: Asia/Shanghai.
 //
 // Note that the time zone database needed by LoadLocation may not be
 // present on all systems, especially non-Unix systems.
-// LoadLocation looks in the directory or uncompressed zip file
-// named by the ZONEINFO environment variable, if any, then looks in
-// known installation locations on Unix systems,
-// and finally looks in $GOROOT/lib/time/zoneinfo.zip.
-func SetTimeZone(zone string) error {
+func SetTimeZone(zone string) (*time.Location, error) {
 	location, err := time.LoadLocation(zone)
-	if err == nil {
-		time.Local = location
+	if err != nil {
+		return nil, err
 	}
-	return err
+	customLocation.Store(location)
+	return location, nil
+}
+
+// ResetTimeZone clears the package default location so Location() falls back to time.Local.
+func ResetTimeZone() {
+	customLocation.Store(nil)
 }
 
 // Timestamp retrieves and returns the timestamp in seconds.
@@ -233,7 +247,7 @@ func StrToTime(str string, format ...string) (*Time, error) {
 		year, month, day     int
 		hour, min, sec, nsec int
 		match                []string
-		local                = time.Local
+		local                = Location()
 	)
 	if match = timeRegex1.FindStringSubmatch(str); len(match) > 0 && match[1] != "" {
 		for k, v := range match {
@@ -355,7 +369,7 @@ func StrToTimeFormat(str string, format string) (*Time, error) {
 // StrToTimeLayout parses string <str> to *Time object with given format <layout>.
 // The parameter <layout> is in stdlib format like "2006-01-02 15:04:05".
 func StrToTimeLayout(str string, layout string) (*Time, error) {
-	if t, err := time.ParseInLocation(layout, str, time.Local); err == nil {
+	if t, err := time.ParseInLocation(layout, str, Location()); err == nil {
 		return NewFromTime(t), nil
 	} else {
 		return nil, err

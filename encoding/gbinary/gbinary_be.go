@@ -103,11 +103,11 @@ func BeEncodeBool(b bool) []byte {
 
 // 自动识别int类型长度，转换为[]byte
 func BeEncodeInt(i int) []byte {
-	if i <= math.MaxInt8 {
+	if i >= math.MinInt8 && i <= math.MaxInt8 {
 		return BeEncodeInt8(int8(i))
-	} else if i <= math.MaxInt16 {
+	} else if i >= math.MinInt16 && i <= math.MaxInt16 {
 		return BeEncodeInt16(int16(i))
-	} else if i <= math.MaxInt32 {
+	} else if i >= math.MinInt32 && i <= math.MaxInt32 {
 		return BeEncodeInt32(int32(i))
 	} else {
 		return BeEncodeInt64(int64(i))
@@ -224,10 +224,16 @@ func BeDecodeToBool(b []byte) bool {
 }
 
 func BeDecodeToInt8(b []byte) int8 {
+	if len(b) == 0 {
+		return 0
+	}
 	return int8(b[0])
 }
 
 func BeDecodeToUint8(b []byte) uint8 {
+	if len(b) == 0 {
+		return 0
+	}
 	return uint8(b[0])
 }
 

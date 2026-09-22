@@ -27,27 +27,35 @@ func IsLetter(b byte) bool {
 
 // IsNumeric checks whether the given string s is numeric.
 // Note that float string like "123.456" is also numeric.
+// Lone "-" / "+", multiple dots, or trailing/leading dots are not numeric.
 func IsNumeric(s string) bool {
 	length := len(s)
 	if length == 0 {
 		return false
 	}
-	for i := 0; i < len(s); i++ {
-		if s[i] == '-' && i == 0 {
-			continue
-		}
-		if s[i] == '.' {
-			if i > 0 && i < len(s)-1 {
-				continue
-			} else {
+	var (
+		dot   bool
+		digit bool
+	)
+	for i := 0; i < length; i++ {
+		c := s[i]
+		switch {
+		case c == '-' || c == '+':
+			if i != 0 {
 				return false
 			}
-		}
-		if s[i] < '0' || s[i] > '9' {
+		case c == '.':
+			if dot || i == 0 || i == length-1 {
+				return false
+			}
+			dot = true
+		case c >= '0' && c <= '9':
+			digit = true
+		default:
 			return false
 		}
 	}
-	return true
+	return digit
 }
 
 // UcFirst returns a copy of the string s with the first letter mapped to its upper case.
@@ -70,7 +78,7 @@ func ReplaceByMap(origin string, replaces map[string]string) string {
 	return origin
 }
 
-// RemoveSymbols 移除元素符号，仅保留数字和字母。
+// RemoveSymbols 移除符号字符，仅保留 ASCII 数字和字母。
 func RemoveSymbols(s string) string {
 	var b []byte
 	for _, c := range s {
@@ -81,8 +89,8 @@ func RemoveSymbols(s string) string {
 	return string(b)
 }
 
-// EqualFoldWithoutChars checks string <s1> and <s2> equal case-insensitively,
-// with/without chars '-'/'_'/'.'/' '.
+// EqualFoldWithoutChars checks whether s1 and s2 are equal case-insensitively
+// after removing non-alphanumeric ASCII characters.
 func EqualFoldWithoutChars(s1, s2 string) bool {
 	return strings.EqualFold(RemoveSymbols(s1), RemoveSymbols(s2))
 }

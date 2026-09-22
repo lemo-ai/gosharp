@@ -71,23 +71,18 @@ func IsEmpty(value interface{}) bool {
 	case map[string]interface{}:
 		return len(value) == 0
 	default:
+		// Typed nil pointers that implement String()/etc. must be detected before method calls.
+		if IsNil(value) {
+			return true
+		}
 		// Common interfaces checks.
 		if f, ok := value.(apiString); ok {
-			if f == nil {
-				return true
-			}
 			return f.String() == ""
 		}
 		if f, ok := value.(apiInterfaces); ok {
-			if f == nil {
-				return true
-			}
 			return len(f.Interfaces()) == 0
 		}
 		if f, ok := value.(apiMapStrAny); ok {
-			if f == nil {
-				return true
-			}
 			return len(f.MapStrAny()) == 0
 		}
 		// Finally using reflect.

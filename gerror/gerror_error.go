@@ -2,7 +2,6 @@ package gerror
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"runtime"
@@ -17,7 +16,7 @@ type Error struct {
 }
 
 const (
-	gFILTER_KEY = "/errors/gerror/gerror"
+	gFILTER_KEY = "/gosharp/gerror"
 )
 
 var (
@@ -46,6 +45,14 @@ func (err *Error) Error() string {
 	return err.error.Error()
 }
 
+// Unwrap returns the wrapped error, for errors.Is / errors.As.
+func (err *Error) Unwrap() error {
+	if err == nil {
+		return nil
+	}
+	return err.error
+}
+
 // Cause returns the root cause error.
 func (err *Error) Cause() error {
 	if err == nil {
@@ -64,9 +71,7 @@ func (err *Error) Cause() error {
 				return loop.error
 			}
 		} else {
-			// return loop
-			// To be compatible with Case of https://github.com/pkg/errors.
-			return errors.New(loop.text)
+			return loop
 		}
 	}
 	return nil

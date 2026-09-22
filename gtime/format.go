@@ -135,7 +135,9 @@ func (t *Time) FormatTo(format string) *Time {
 	if t == nil {
 		return nil
 	}
-	t.Time = NewFromStr(t.Format(format)).Time
+	if nt := NewFromStr(t.Format(format)); nt != nil {
+		t.Time = nt.Time
+	}
 	return t
 }
 
@@ -160,7 +162,9 @@ func (t *Time) LayoutTo(layout string) *Time {
 	if t == nil {
 		return nil
 	}
-	t.Time = NewFromStr(t.Layout(layout)).Time
+	if nt := NewFromStr(t.Layout(layout)); nt != nil {
+		t.Time = nt.Time
+	}
 	return t
 }
 

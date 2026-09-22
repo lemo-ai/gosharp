@@ -454,24 +454,15 @@ func doMapToMap(params interface{}, pointer interface{}, mapping ...map[string]s
 				return err
 			}
 		default:
-			e.Set(
-				reflect.ValueOf(
-					Convert(
-						paramsRv.MapIndex(key).Interface(),
-						pointerValueType.String(),
-					),
-				),
-			)
+			if !assignConverted(e, paramsRv.MapIndex(key).Interface()) {
+				return gerror.Newf("cannot convert map value for key %v", key.Interface())
+			}
 		}
-		dataMap.SetMapIndex(
-			reflect.ValueOf(
-				Convert(
-					key.Interface(),
-					pointerKeyType.Name(),
-				),
-			),
-			e,
-		)
+		keyValue, ok := convertToType(key.Interface(), pointerKeyType)
+		if !ok {
+			return gerror.Newf("cannot convert map key %v to %s", key.Interface(), pointerKeyType.String())
+		}
+		dataMap.SetMapIndex(keyValue, e)
 	}
 	pointerRv.Set(dataMap)
 	return nil
@@ -539,15 +530,11 @@ func doMapToMaps(params interface{}, pointer interface{}, mapping ...map[string]
 		if err = Structs(paramsRv.MapIndex(key).Interface(), e.Addr(), mapping...); err != nil {
 			return err
 		}
-		dataMap.SetMapIndex(
-			reflect.ValueOf(
-				Convert(
-					key.Interface(),
-					pointerKeyType.Name(),
-				),
-			),
-			e,
-		)
+		keyValue, ok := convertToType(key.Interface(), pointerKeyType)
+		if !ok {
+			return gerror.Newf("cannot convert map key %v to %s", key.Interface(), pointerKeyType.String())
+		}
+		dataMap.SetMapIndex(keyValue, e)
 	}
 	pointerRv.Set(dataMap)
 	return nil
