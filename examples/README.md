@@ -20,6 +20,7 @@ cd examples/algo && go run .
 | `retry` | 重试 |
 | `safego` | 安全 goroutine |
 | `hashx` | 哈希 |
+| `cryptox` | 加解密 / HMAC / 口令 |
 | `randx` | 随机数 |
 | `empty` | 空值判断 |
 | `judge` | 字符串判定 |

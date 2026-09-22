@@ -1,6 +1,6 @@
 # gosharp
 
-Go 常用工具库，提供类型转换、时间处理、错误栈、并发编排、高性能 JSON、切片工具、常用算法等能力。
+Go 常用工具库，提供类型转换、时间处理、错误栈、并发编排、高性能 JSON、切片工具、加解密、常用算法等能力。
 
 > English: see [README.md](./README.md)
 
@@ -31,6 +31,7 @@ go get github.com/lemo-ai/gosharp@latest
 | `safego` | 安全 goroutine |
 | `hashx` | 哈希快捷方法 |
 | `randx` | 随机数 / 随机串 |
+| `cryptox` | AES-GCM / ChaCha20-Poly1305 / RSA-OAEP·PSS / HMAC / bcrypt / PBKDF2 |
 | `algo` | 常用算法（数学 / 搜索排序 / 字符串 / 并查集 / LRU） |
 
 ## 示例
@@ -41,6 +42,7 @@ go get github.com/lemo-ai/gosharp@latest
 go run ./examples/convert
 go run ./examples/json
 go run ./examples/algo
+go run ./examples/cryptox
 go run ./examples/mr
 # 其余见 examples/README.md
 ```
@@ -52,6 +54,7 @@ import (
 	"github.com/lemo-ai/gosharp/algo"
 	"github.com/lemo-ai/gosharp/collection"
 	"github.com/lemo-ai/gosharp/convert"
+	"github.com/lemo-ai/gosharp/cryptox"
 	"github.com/lemo-ai/gosharp/json"
 )
 
@@ -59,6 +62,8 @@ _ = convert.Int("42")
 _, _ = json.Marshal(map[string]any{"ok": true})
 _ = collection.Unique([]int{1, 2, 2, 3})
 _ = algo.GCD(54, 24)
+key, _ := cryptox.GenerateAESKey(32)
+_, _ = cryptox.AESGCMEncryptBase64(key, "secret")
 ```
 
 ## 说明

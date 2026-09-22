@@ -1,6 +1,6 @@
 # gosharp
 
-A Go utility library for conversion, time, errors, concurrency, high-performance JSON, collections, and common algorithms.
+A Go utility library for conversion, time, errors, concurrency, high-performance JSON, collections, crypto helpers, and common algorithms.
 
 中文说明见 [README_zh-CN.md](./README_zh-CN.md)。
 
@@ -19,6 +19,7 @@ Requires **Go 1.26.0+**.
 | `convert` / `gtime` / `gerror` / `mr` | conversion, time, stacked errors, MapReduce |
 | `json` | high-performance JSON |
 | `collection` / `retry` / `safego` / `hashx` / `randx` | slices, retry, safe goroutines, hash, random |
+| `cryptox` | AES-GCM, ChaCha20-Poly1305, RSA-OAEP/PSS, HMAC, bcrypt, PBKDF2 |
 | `encoding/gbinary` / `regex` / `empty` / `judge` / `structutil` | binary, regex, empty checks, strings, struct tags |
 | `algo` | algorithms: math, search/sort, string, UnionFind, LRU |
 
@@ -30,6 +31,7 @@ Runnable demos live under [`examples/`](./examples/):
 go run ./examples/convert
 go run ./examples/json
 go run ./examples/algo
+go run ./examples/cryptox
 ```
 
 See [examples/README.md](./examples/README.md) for the full list.
