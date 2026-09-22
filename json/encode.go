@@ -258,7 +258,7 @@ func isEmptyValue(v reflect.Value) bool {
 	return false
 }
 
-// writeString writes a JSON string (no HTML escape — same default as sonic ConfigDefault).
+// writeString writes a JSON string without HTML escaping.
 func (e *encoder) writeString(s string) {
 	e.buf = append(e.buf, '"')
 	start := 0

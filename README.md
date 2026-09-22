@@ -1,6 +1,6 @@
 # gosharp
 
-Go utilities: conversion, time, errors, MapReduce, **self-contained high-performance JSON**, collections, and more.
+A Go utility library for type conversion, time helpers, stacked errors, concurrency helpers, high-performance JSON, collections, hashing, and more.
 
 中文说明见 [README_zh-CN.md](./README_zh-CN.md)。
 
@@ -16,21 +16,43 @@ Requires **Go 1.26.0+**.
 
 | Package | Purpose |
 |---|---|
-| `convert` / `gtime` / `gerror` / `mr` | conversion, time, stacked errors, MapReduce |
-| `json` | **in-house** JSON (codec cache + typed paths; not a sonic wrapper) |
-| `collection` / `retry` / `safego` / `hashx` / `randx` | slices, retry, safe goroutines, hash, random |
-| `encoding/gbinary` / `regex` / `empty` / `judge` / `structutil` | binary, regex, empty checks, strings, struct tags |
+| `convert` | Convert between common Go types |
+| `gtime` | Time wrapper with flexible parsing/formatting |
+| `gerror` | Errors with stack traces (`Wrap` / `Cause` / `errors.Is`) |
+| `mr` | MapReduce / ForEach / Finish concurrency helpers |
+| `json` | High-performance JSON encode/decode |
+| `encoding/gbinary` | Little/big-endian binary encode/decode |
+| `regex` | Regex APIs with compiled-pattern cache |
+| `empty` | Empty / nil checks |
+| `judge` / `stringutil` | String checks and light transforms |
+| `structutil` | Struct field / tag reflection helpers |
+| `collection` | Generic slice helpers |
+| `retry` | Retry with delay / backoff |
+| `safego` | Goroutines with panic recovery |
+| `hashx` | MD5 / SHA / FNV helpers |
+| `randx` | Crypto & fast random helpers |
 
-## JSON
+## Quick examples
 
-Implemented in-tree (inspired by common high-perf techniques, **not** wrapping ByteDance sonic). Sonic is only used in benchmarks for comparison.
+```go
+import (
+	"github.com/lemo-ai/gosharp/collection"
+	"github.com/lemo-ai/gosharp/convert"
+	"github.com/lemo-ai/gosharp/json"
+)
 
-```bash
-GOTOOLCHAIN=go1.26.0 go test ./json/ -bench=. -benchmem
+_ = convert.Int("42")
+_, _ = json.Marshal(map[string]any{"ok": true})
+_ = collection.Unique([]int{1, 2, 2, 3})
 ```
 
-On Apple M5: Marshal beats sonic (~1.6–2×); small Unmarshal matches/beats sonic; large Unmarshal may still trail sonic’s JIT/SIMD.
+## Notes
+
+- `gtime.SetTimeZone` only affects this package (`gtime.Location()`), not process-wide `time.Local`.
+- `stringutil` delegates to `judge`; prefer `judge` in new code.
 
 ## License
 
-[Apache License 2.0](./LICENSE) · Copyright 2024-2026 lemo-ai
+[Apache License 2.0](./LICENSE)
+
+Copyright 2024-2026 lemo-ai

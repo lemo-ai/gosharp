@@ -1,6 +1,6 @@
 # gosharp
 
-Go 常用工具库：类型转换、时间、错误栈、MapReduce、**自研高性能 JSON**、切片工具等。
+Go 常用工具库，提供类型转换、时间处理、错误栈、并发编排、高性能 JSON、切片与哈希等能力。
 
 > English: see [README.md](./README.md)
 
@@ -16,45 +16,74 @@ go get github.com/lemo-ai/gosharp@latest
 
 | 包 | 说明 |
 |---|---|
-| `convert` | 任意类型互转 |
-| `gtime` | 时间封装 |
-| `gerror` | 带堆栈错误 |
-| `mr` | MapReduce / ForEach / Finish |
-| `encoding/gbinary` | 二进制编解码 |
-| `json` | **自研**高性能 JSON（类型 codec 缓存 + 特化路径，不依赖 sonic） |
-| `regex` | 带编译缓存的正则 |
+| `convert` | 任意类型互转（数字、字符串、切片、map、struct、时间等） |
+| `gtime` | 时间封装，支持常见字符串解析与自定义格式 |
+| `gerror` | 带堆栈的错误，支持 `Wrap` / `Cause` / `errors.Is` |
+| `mr` | MapReduce / ForEach / Finish 并发编排 |
+| `json` | 高性能 JSON 编解码（类型 codec 缓存与常见类型特化路径） |
+| `encoding/gbinary` | 大端 / 小端二进制编解码与位操作 |
+| `regex` | 带编译缓存的正则 API |
 | `empty` | 空值 / nil 判断 |
-| `judge` / `stringutil` | 字符串工具 |
-| `structutil` | 结构体 tag 反射 |
-| `collection` | 泛型切片工具 |
-| `retry` | 重试 |
-| `safego` | 安全 goroutine |
-| `hashx` | 哈希快捷方法 |
-| `randx` | 随机数 / 随机串 |
+| `judge` / `stringutil` | 字符串判定与简单处理 |
+| `structutil` | 结构体字段 / tag 反射工具 |
+| `collection` | 泛型切片工具（Contains / Unique / Filter / Chunk 等） |
+| `retry` | 可配置重试（次数 / 延迟 / 退避） |
+| `safego` | 带 panic recover 的安全 goroutine |
+| `hashx` | MD5 / SHA1 / SHA256 / FNV 快捷方法 |
+| `randx` | 安全随机数 / 随机字符串 |
 
-## JSON（自研）
+## 快速示例
 
-`json` 包是独立实现，**不引用** `bytedance/sonic`。设计参考了高性能 JSON 引擎的常见思路：
+### 类型转换
 
-- 按 `reflect.Type` 编译并缓存 codec
-- `[]int` / `[]string` / `map[string]string` 等特化编解码
-- buffer pool、无 HTML escape（默认）、unsafe 零拷贝写回
+```go
+import "github.com/lemo-ai/gosharp/convert"
 
-压测对比（Apple M5，含 sonic 仅作对照依赖）：
-
-```bash
-GOTOOLCHAIN=go1.26.0 go test ./json/ -bench=. -benchmem
+n := convert.Int("42")
+ss := convert.Strings([]string{"a", "b"})
 ```
 
-典型结果（越高越好的相对速度，以 sonic 为 1.0）：
+### JSON
 
-| 场景 | gosharp vs sonic |
-|------|------------------|
-| 小对象 Marshal | **约 2× 更快** |
-| 小对象 Unmarshal | **持平或略快** |
-| 大对象 Marshal | **约 1.6× 更快** |
-| 大对象 Unmarshal | 仍略慢于 sonic（JIT/SIMD 优势） |
+```go
+import "github.com/lemo-ai/gosharp/json"
+
+b, err := json.Marshal(map[string]any{"ok": true})
+var out map[string]any
+err = json.Unmarshal(b, &out)
+_ = json.Pretouch(MyType{}) // 预热热点类型
+```
+
+### 带堆栈错误
+
+```go
+import (
+	"errors"
+	"io"
+
+	"github.com/lemo-ai/gosharp/gerror"
+)
+
+err := gerror.Wrap(io.EOF, "read failed")
+_ = errors.Is(err, io.EOF) // true
+```
+
+### 切片工具
+
+```go
+import "github.com/lemo-ai/gosharp/collection"
+
+collection.Unique([]int{1, 2, 2, 3})     // [1 2 3]
+collection.Chunk([]int{1, 2, 3, 4, 5}, 2) // [[1 2] [3 4] [5]]
+```
+
+## 说明
+
+- `gtime.SetTimeZone` 只影响本包默认时区（`gtime.Location()`），不会修改进程级 `time.Local`。
+- `stringutil` 委托给 `judge`，新代码推荐直接使用 `judge`。
 
 ## 许可证
 
-[Apache License 2.0](./LICENSE) · Copyright 2024-2026 lemo-ai
+[Apache License 2.0](./LICENSE)
+
+Copyright 2024-2026 lemo-ai

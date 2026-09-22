@@ -1,12 +1,10 @@
 // Package json is a self-contained high-performance JSON library for gosharp.
 //
-// Design (inspired by common high-perf JSON engines, implemented independently):
+// Design highlights:
 //   - compile-once type codecs cached by reflect.Type
 //   - buffer pooling for marshal
-//   - no HTML-escape by default (faster; closer to sonic ConfigDefault)
+//   - no HTML-escape by default
 //   - specialized paths for primitives / slices / maps / structs
-//
-// It does NOT wrap bytedance/sonic. Benchmark against sonic in json_test.go.
 package json
 
 import (
