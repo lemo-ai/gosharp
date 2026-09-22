@@ -104,7 +104,7 @@ func decodeIntSlice(d *decoder, v reflect.Value) error {
 		setSliceInt(v, make([]int, 0))
 		return nil
 	}
-	out := make([]int, 0, 256)
+	out := make([]int, 0, 16)
 	for {
 		neg := false
 		if off < len(data) && data[off] == '-' {
@@ -176,7 +176,7 @@ func decodeInt64Slice(d *decoder, v reflect.Value) error {
 		setSliceInt64(v, make([]int64, 0))
 		return nil
 	}
-	out := make([]int64, 0, 256)
+	out := make([]int64, 0, 16)
 	for {
 		neg := false
 		if off < len(data) && data[off] == '-' {
@@ -246,7 +246,7 @@ func decodeStringSlice(d *decoder, v reflect.Value) error {
 		setSliceString(v, make([]string, 0))
 		return nil
 	}
-	out := make([]string, 0, 64)
+	out := make([]string, 0, 8)
 	for {
 		s, err := d.readStringFast()
 		if err != nil {
@@ -308,7 +308,7 @@ func decodeMapStringString(d *decoder, v reflect.Value) error {
 		setMapStringString(v, make(map[string]string))
 		return nil
 	}
-	m := make(map[string]string, 16)
+	m := make(map[string]string, 8)
 	for {
 		k, err := d.readStringFast()
 		if err != nil {
