@@ -1,6 +1,6 @@
 # gosharp
 
-Go 常用工具库，封装类型转换、时间处理、错误栈、MapReduce、正则缓存、二进制编解码等能力。
+Go 常用工具库：类型转换、时间、错误栈、MapReduce、**自研高性能 JSON**、切片工具等。
 
 > English: see [README.md](./README.md)
 
@@ -10,95 +10,51 @@ Go 常用工具库，封装类型转换、时间处理、错误栈、MapReduce�
 go get github.com/lemo-ai/gosharp@latest
 ```
 
-要求 Go 1.21+。
+要求 **Go 1.26.0+**。
 
 ## 包一览
 
 | 包 | 说明 |
 |---|---|
-| `convert` | 任意类型互转（数字、字符串、切片、map、struct、时间等） |
-| `gtime` | 时间封装，支持常见字符串解析与自定义格式 |
-| `gerror` | 带堆栈的错误，支持 `Wrap` / `Cause` / `errors.Is` |
-| `mr` | MapReduce / ForEach / Finish 并发编排 |
-| `encoding/gbinary` | 大端/小端二进制编解码与位操作 |
-| `json` | 基于 json-iterator 的 JSON 编解码 |
-| `regex` | 带编译缓存的正则 API |
+| `convert` | 任意类型互转 |
+| `gtime` | 时间封装 |
+| `gerror` | 带堆栈错误 |
+| `mr` | MapReduce / ForEach / Finish |
+| `encoding/gbinary` | 二进制编解码 |
+| `json` | **自研**高性能 JSON（类型 codec 缓存 + 特化路径，不依赖 sonic） |
+| `regex` | 带编译缓存的正则 |
 | `empty` | 空值 / nil 判断 |
-| `judge` / `stringutil` | 字符串判定与简单处理 |
-| `structutil` | 结构体字段 / tag 反射工具 |
+| `judge` / `stringutil` | 字符串工具 |
+| `structutil` | 结构体 tag 反射 |
+| `collection` | 泛型切片工具 |
+| `retry` | 重试 |
+| `safego` | 安全 goroutine |
+| `hashx` | 哈希快捷方法 |
+| `randx` | 随机数 / 随机串 |
 
-## 快速示例
+## JSON（自研）
 
-### 类型转换
+`json` 包是独立实现，**不引用** `bytedance/sonic`。设计参考了高性能 JSON 引擎的常见思路：
 
-```go
-package main
+- 按 `reflect.Type` 编译并缓存 codec
+- `[]int` / `[]string` / `map[string]string` 等特化编解码
+- buffer pool、无 HTML escape（默认）、unsafe 零拷贝写回
 
-import (
-	"fmt"
+压测对比（Apple M5，含 sonic 仅作对照依赖）：
 
-	"github.com/lemo-ai/gosharp/convert"
-)
-
-func main() {
-	fmt.Println(convert.Int("42")) // 42
-	fmt.Println(convert.Strings([]string{"a", "b"}))
-	fmt.Println(convert.Map(struct {
-		Name string `json:"name"`
-	}{Name: "gosharp"}))
-}
+```bash
+GOTOOLCHAIN=go1.26.0 go test ./json/ -bench=. -benchmem
 ```
 
-### 带堆栈错误
+典型结果（越高越好的相对速度，以 sonic 为 1.0）：
 
-```go
-import (
-	"errors"
-	"fmt"
-	"io"
-
-	"github.com/lemo-ai/gosharp/gerror"
-)
-
-err := gerror.Wrap(io.EOF, "read failed")
-fmt.Println(errors.Is(err, io.EOF)) // true
-fmt.Printf("%+v\n", err)            // 错误信息 + 堆栈
-```
-
-### MapReduce
-
-```go
-import "github.com/lemo-ai/gosharp/mr"
-
-v, err := mr.MapReduce(
-	func(source chan<- interface{}) {
-		for i := 1; i <= 5; i++ {
-			source <- i
-		}
-	},
-	func(item interface{}, writer mr.Writer, cancel func(error)) {
-		writer.Write(item.(int) * 2)
-	},
-	func(pipe <-chan interface{}, writer mr.Writer, cancel func(error)) {
-		sum := 0
-		for v := range pipe {
-			sum += v.(int)
-		}
-		writer.Write(sum)
-	},
-)
-```
+| 场景 | gosharp vs sonic |
+|------|------------------|
+| 小对象 Marshal | **约 2× 更快** |
+| 小对象 Unmarshal | **持平或略快** |
+| 大对象 Marshal | **约 1.6× 更快** |
+| 大对象 Unmarshal | 仍略慢于 sonic（JIT/SIMD 优势） |
 
 ## 许可证
 
-[Apache License 2.0](./LICENSE)
-
-Copyright 2024-2026 lemo-ai
-
-部分实现参考了 [GoFrame](https://github.com/gogf/gf)、[go-zero](https://github.com/zeromicro/go-zero) 等开源项目的设计思路，并在本仓库中做了裁剪与修正。
-
-## 说明
-
-- `gtime.SetTimeZone` 只影响本包默认时区（见 `gtime.Location()`），**不会**修改进程级 `time.Local`。
-- `stringutil` 已委托给 `judge`，两者 API 等价，推荐新代码直接使用 `judge`。
-- 欢迎补充测试与 issue。
+[Apache License 2.0](./LICENSE) · Copyright 2024-2026 lemo-ai
